@@ -1,8 +1,16 @@
-data "aws_organizations_organization" "organization" {}
+module "dynamic_depends_on" {
+  source = "./dynamic-depends-on"
+  dynamic_depends_on = var.dynamic_depends_on
+}
+
+data "aws_organizations_organization" "organization" {
+  depends_on = [
+    module.dynamic_depends_on
+  ]
+}
 
 // We only search for a total depth of 5 nested OUs, since the limit is 5
 // https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_ous.html
-
 locals {
   roots = {
     for root in data.aws_organizations_organization.organization.roots :
