@@ -9,9 +9,27 @@ data "aws_organizations_organization" "organization" {
   ]
 }
 
-// We only search for a total depth of 5 nested OUs, since the limit is 5
-// https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_ous.html
 locals {
+  accounts_by_id = data.aws_organizations_organization.organization.accounts == null ? null : {
+    for account in data.aws_organizations_organization.organization.accounts:
+    account.id => account
+  }
+  
+  accounts_by_name = data.aws_organizations_organization.organization.accounts == null ? null : {
+    for account in data.aws_organizations_organization.organization.accounts:
+    account.name => account
+  }
+
+  accounts_by_arn = data.aws_organizations_organization.organization.accounts == null ? null : {
+    for account in data.aws_organizations_organization.organization.accounts:
+    account.arn => account
+  }
+
+  accounts_by_root_email = data.aws_organizations_organization.organization.accounts == null ? null : {
+    for account in data.aws_organizations_organization.organization.accounts:
+    account.email => account
+  }
+
   roots = {
     for root in data.aws_organizations_organization.organization.roots :
     root.id => {
@@ -23,6 +41,9 @@ locals {
     }
   }
 }
+
+// We only search for a total depth of 5 nested OUs, since the limit is 5
+// https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_ous.html
 
 data "aws_organizations_organizational_units" "level_1" {
   for_each  = local.roots

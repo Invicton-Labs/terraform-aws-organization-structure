@@ -12,3 +12,23 @@ output "organization" {
   description = "The metadata for the organization (matches the output of the `aws_organizations_organization` data source)."
   value       = data.aws_organizations_organization.organization
 }
+
+output "accounts_by_id" {
+  description = "A map of account ID to account information (containing ID, name, email, ARN, and status)."
+  value = local.accounts_by_id
+}
+
+output "accounts_by_name" {
+  description = "A map of account name to account information (containing ID, name, email, ARN, and status)."
+  value = local.accounts_by_name
+}
+
+output "accounts_by_arn" {
+  description = "A map of account ARN to account information (containing ID, name, email, ARN, and status)."
+  value = local.accounts_by_arn
+}
+
+output "accounts_by_root_email" {
+  description = "A map of account root email to account information (containing ID, name, email, ARN, and status)."
+  value = local.accounts_by_root_email
+}
