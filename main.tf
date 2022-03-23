@@ -1,5 +1,5 @@
 module "dynamic_depends_on" {
-  source = "./dynamic-depends-on"
+  source             = "./dynamic-depends-on"
   dynamic_depends_on = var.dynamic_depends_on
 }
 
@@ -11,33 +11,34 @@ data "aws_organizations_organization" "organization" {
 
 locals {
   accounts_by_id = data.aws_organizations_organization.organization.accounts == null ? null : {
-    for account in data.aws_organizations_organization.organization.accounts:
+    for account in data.aws_organizations_organization.organization.accounts :
     account.id => account
   }
-  
+
   accounts_by_name = data.aws_organizations_organization.organization.accounts == null ? null : {
-    for account in data.aws_organizations_organization.organization.accounts:
+    for account in data.aws_organizations_organization.organization.accounts :
     account.name => account
   }
 
   accounts_by_arn = data.aws_organizations_organization.organization.accounts == null ? null : {
-    for account in data.aws_organizations_organization.organization.accounts:
+    for account in data.aws_organizations_organization.organization.accounts :
     account.arn => account
   }
 
   accounts_by_root_email = data.aws_organizations_organization.organization.accounts == null ? null : {
-    for account in data.aws_organizations_organization.organization.accounts:
+    for account in data.aws_organizations_organization.organization.accounts :
     account.email => account
   }
 
   roots = {
     for root in data.aws_organizations_organization.organization.roots :
     root.id => {
-      id           = root.id
-      name         = root.name
-      arn          = root.arn
-      parent_id    = null
-      ancestor_ids = []
+      id                 = root.id
+      name               = root.name
+      arn                = root.arn
+      parent_id          = null
+      ancestor_ids       = []
+      principal_org_path = "${data.aws_organizations_organization.organization.id}/${root.id}"
     }
   }
 }
@@ -104,6 +105,7 @@ locals {
         ancestor_ids = [
           v.parent_id
         ]
+        principal_org_path = "${local.roots[k].principal_org_path}/${child.id}"
       })
     }
   ]...)
@@ -119,6 +121,7 @@ locals {
           ],
           local.level_1_ous[v.parent_id].ancestor_ids
         )
+        principal_org_path = "${local.level_1_ous[v.parent_id].principal_org_path}/${child.id}"
       })
     }
   ]...)
@@ -134,6 +137,7 @@ locals {
           ],
           local.level_2_ous[v.parent_id].ancestor_ids
         )
+        principal_org_path = "${local.level_2_ous[v.parent_id].principal_org_path}/${child.id}"
       })
     }
   ]...)
@@ -149,6 +153,7 @@ locals {
           ],
           local.level_3_ous[v.parent_id].ancestor_ids
         )
+        principal_org_path = "${local.level_3_ous[v.parent_id].principal_org_path}/${child.id}"
       })
     }
   ]...)
@@ -164,6 +169,7 @@ locals {
           ],
           local.level_4_ous[v.parent_id].ancestor_ids
         )
+        principal_org_path = "${local.level_4_ous[v.parent_id].principal_org_path}/${child.id}"
       })
     }
   ]...)
@@ -206,13 +212,13 @@ locals {
         local.all_ous[ancestor_id].arn
         ], [
         data.aws_organizations_organization.organization.arn
-          // Add the organization ARN to the list
+        // Add the organization ARN to the list
       ])
       applicable_ou_arns = concat([
         for applicable_ou_id in ou.applicable_ou_ids :
         local.all_ous[applicable_ou_id].arn
         ], [
-          // Add the organization ARN to the list
+        // Add the organization ARN to the list
         data.aws_organizations_organization.organization.arn
       ])
       children_arns = [
